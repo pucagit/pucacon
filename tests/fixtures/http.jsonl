@@ -1,0 +1,2 @@
+{"input":"api.example.com","url":"https://api.example.com","host":"93.184.216.34","port":"443","scheme":"https","status_code":200,"title":"API","webserver":"nginx","tech":["Nginx","PHP"],"a":["93.184.216.34"],"cname":["cdn.example.net"],"cdn":true,"cdn_name":"cloudflare"}
+{"input":"admin.example.com","url":"https://admin.example.com","host":"93.184.216.34","port":"443","scheme":"https","status_code":403,"title":"Forbidden","a":["93.184.216.34"]}

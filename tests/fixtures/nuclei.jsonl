@@ -1,0 +1,2 @@
+{"template-id":"tech-detect","info":{"name":"Nginx Version Disclosure","severity":"info","reference":["https://x"]},"host":"https://api.example.com","matched-at":"https://api.example.com","extracted-results":["nginx/1.18"]}
+{"template-id":"git-config","info":{"name":"Exposed .git Config","severity":"medium","reference":[]},"host":"https://api.example.com","matched-at":"https://api.example.com/.git/config"}
