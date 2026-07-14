@@ -4,7 +4,7 @@ import argparse
 import sys
 from datetime import datetime
 from pathlib import Path
-from .config import Workspace
+from .config import Workspace, load_env
 from .targets import parse_targets
 from .pipeline import run_pipeline
 from .report import write_report
@@ -20,10 +20,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--no-shodan", action="store_true", help="disable shodan/uncover enrichment")
     p.add_argument("--depth", default="3", help="katana crawl depth")
     p.add_argument("--timeout", type=int, default=None, help="per-tool timeout seconds")
+    p.add_argument("--env", default=None,
+                   help="path to a .env of API keys (default: ./.env then setup/.env)")
     return p
 
 def main(argv=None) -> int:
     ns = build_parser().parse_args(argv)
+    keys = load_env(ns.env)
+    if keys:
+        log(f"[env] loaded {len(keys)} key(s): {', '.join(sorted(keys))}")
     lines = Path(ns.targets_file).read_text().splitlines()
     scope = parse_targets(lines)
     if not (scope.domains or scope.wildcards or scope.ips or scope.cidrs):

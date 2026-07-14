@@ -1,8 +1,38 @@
 """Central config: tool binary map, workspace layout, tunable defaults."""
 from __future__ import annotations
+import os
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
+
+# repo root (…/pucacon), one level above this package dir — holds setup/.env
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+def load_env(path: str | Path | None = None) -> list[str]:
+    """Load KEY=VALUE lines from a .env into os.environ (existing vars win).
+
+    PD tools read keys from the environment (PDCP_API_KEY for chaos/nuclei,
+    SHODAN_API_KEY / CENSYS_API_* / FOFA_* for uncover), and subprocesses
+    inherit os.environ, so loading the .env here wires them all up. Returns
+    the list of key names loaded (values never logged)."""
+    candidates = [Path(path)] if path else [Path.cwd() / ".env",
+                                             _PROJECT_ROOT / "setup" / ".env"]
+    for c in candidates:
+        if not (c and c.is_file()):
+            continue
+        loaded: list[str] = []
+        for line in c.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, val = line.partition("=")
+            key = key.strip()
+            val = val.strip().strip('"').strip("'")
+            if key and key not in os.environ:  # do not overwrite a real env var
+                os.environ[key] = val
+            loaded.append(key)
+        return loaded
+    return []
 
 # logical stage name -> binary name resolved on PATH
 TOOLS = {

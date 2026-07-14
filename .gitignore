@@ -9,3 +9,7 @@ _raw/
 targets*.txt
 scope*.txt
 *.engagement
+# secrets — API keys must never reach this public repo
+.env
+.env.*
+**/.env
