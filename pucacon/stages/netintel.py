@@ -8,7 +8,8 @@ def build_asnmap_cmd(ip: str) -> list[str]:
     return ["-i", ip, "-json", "-silent"]
 
 def build_cdncheck_cmd(in_file: str, out: str) -> list[str]:
-    return ["-i", in_file, "-resp", "-json", "-silent", "-o", out]
+    # this cdncheck version uses -jsonl (not -json) for JSON output
+    return ["-i", in_file, "-resp", "-jsonl", "-silent", "-o", out]
 
 def _all_ips(ws) -> list[str]:
     ips: set[str] = set()

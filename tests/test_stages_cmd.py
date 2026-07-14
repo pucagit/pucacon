@@ -44,7 +44,7 @@ def test_asnmap_cmd_json():
 
 def test_cdncheck_cmd_json_resp():
     cmd = netintel.build_cdncheck_cmd("ips.txt", "cdn.jsonl")
-    assert "-i" in cmd and "ips.txt" in cmd and "-resp" in cmd and "-json" in cmd
+    assert "-i" in cmd and "ips.txt" in cmd and "-resp" in cmd and "-jsonl" in cmd
 
 # --- tls ---
 def test_tlsx_cmd_grabs_san_and_flags():

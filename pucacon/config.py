@@ -26,9 +26,19 @@ DEFAULTS = {
     "nuclei_rate": "150",
 }
 
+_PDTM_BIN = Path.home() / ".pdtm" / "go" / "bin"
+
 def resolve(name: str) -> str | None:
-    """Absolute path to a tool binary, or None if not installed."""
-    return shutil.which(TOOLS.get(name, name))
+    """Absolute path to a tool binary, or None if not installed.
+
+    Resolve pdtm-installed binaries FIRST: on Kali, `/usr/bin/httpx` is the
+    unrelated Python httpx HTTP-client CLI that shadows ProjectDiscovery's
+    httpx on PATH. Preferring ~/.pdtm/go/bin also picks the newer nuclei."""
+    binary = TOOLS.get(name, name)
+    pdtm = _PDTM_BIN / binary
+    if pdtm.is_file():
+        return str(pdtm)
+    return shutil.which(binary)
 
 @dataclass
 class Workspace:
