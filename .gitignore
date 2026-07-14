@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+pucacon-out/
+*-smoke/
+_raw/
+.venv/
+# public repo — never commit engagement scope or scan output
+targets*.txt
+scope*.txt
+*.engagement
