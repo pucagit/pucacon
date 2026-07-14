@@ -1,11 +1,24 @@
 """Thin, defensive wrappers around subprocess for the PD tools."""
 from __future__ import annotations
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 from typing import Iterator, Sequence
 from .config import resolve
+
+# Only these tools consume PDCP_API_KEY for real data (chaos dataset, uncover
+# pdcp engine, subfinder chaos source). For every other tool, setting
+# PDCP_API_KEY triggers a cloud-sync network call to ProjectDiscovery that can
+# hang indefinitely (observed with httpx), so we strip it from their env.
+_PDCP_TOOLS = {"chaos", "subfinder", "uncover"}
+
+def _env_for(name: str) -> dict:
+    env = os.environ.copy()
+    if name not in _PDCP_TOOLS:
+        env.pop("PDCP_API_KEY", None)
+    return env
 
 def log(msg: str) -> None:
     print(msg, file=sys.stderr, flush=True)
@@ -26,7 +39,7 @@ def run_tool(name: str, args: Sequence[str], stdin: str | None = None,
             proc = subprocess.run(
                 cmd, input=stdin, text=True,
                 stdout=(fh if out_file else None),
-                timeout=timeout, check=False,
+                timeout=timeout, check=False, env=_env_for(name),
             )
         return proc.returncode
     except subprocess.TimeoutExpired:
@@ -46,7 +59,8 @@ def capture(name: str, args: Sequence[str], stdin: str | None = None,
     log(f"[run] {' '.join(cmd)}")
     try:
         proc = subprocess.run(cmd, input=stdin, text=True,
-                              capture_output=True, timeout=timeout, check=False)
+                              capture_output=True, timeout=timeout, check=False,
+                              env=_env_for(name))
         return proc.stdout
     except Exception as e:  # noqa: BLE001
         log(f"[warn] {name} failed: {e}")

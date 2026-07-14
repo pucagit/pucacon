@@ -1,5 +1,13 @@
 import json
-from pucacon.runner import tool_available, capture, run_tool, iter_jsonl
+from pucacon.runner import tool_available, capture, run_tool, iter_jsonl, _env_for
+
+def test_env_strips_pdcp_for_probing_tools(monkeypatch):
+    monkeypatch.setenv("PDCP_API_KEY", "secret")
+    assert "PDCP_API_KEY" not in _env_for("httpx")   # probing tool: stripped
+    assert "PDCP_API_KEY" not in _env_for("naabu")
+    assert _env_for("chaos").get("PDCP_API_KEY") == "secret"     # kept
+    assert _env_for("subfinder").get("PDCP_API_KEY") == "secret"
+    assert _env_for("uncover").get("PDCP_API_KEY") == "secret"
 
 def test_tool_available_true_for_python():
     # "sh" is always present; monkeypatch-free check via a real binary
