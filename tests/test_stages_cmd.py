@@ -50,8 +50,9 @@ def test_cdncheck_cmd_json_resp():
 def test_tlsx_cmd_grabs_san_and_flags():
     cmd = tls.build_tlsx_cmd("hosts.txt", "tls.jsonl")
     assert "-l" in cmd and "-json" in cmd and "-silent" in cmd
-    assert "-san" in cmd and "-cn" in cmd
     assert "-expired" in cmd and "-self-signed" in cmd
+    # -san/-cn conflict with the misconfig probes; default JSON still has them
+    assert "-san" not in cmd and "-cn" not in cmd
 
 # --- crawl ---
 def test_katana_cmd_js_aware_depth_json():

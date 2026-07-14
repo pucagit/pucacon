@@ -4,7 +4,10 @@ from pathlib import Path
 from .. import runner
 
 def build_tlsx_cmd(in_file: str, out: str) -> list[str]:
-    return ["-l", in_file, "-json", "-silent", "-san", "-cn",
+    # tlsx forbids the -san/-cn extraction probes together with the -expired/
+    # -self-signed misconfig probes; the default JSON already carries
+    # subject_cn / subject_an, so we keep the misconfig probes only.
+    return ["-l", in_file, "-json", "-silent",
             "-expired", "-self-signed", "-o", out]
 
 def _https_targets(ws) -> list[str]:
