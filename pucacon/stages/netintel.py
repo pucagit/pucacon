@@ -1,11 +1,25 @@
 """IP intel: ASN (asnmap), CDN/WAF/cloud (cdncheck), Shodan + uncover (best-effort)."""
 from __future__ import annotations
 import json
+import os
+import urllib.error
+import urllib.request
 from pathlib import Path
 from .. import runner
 
 def build_asnmap_cmd(ip: str) -> list[str]:
     return ["-i", ip, "-json", "-silent"]
+
+def shodan_host(ip: str, key: str, timeout: int | None = None) -> str:
+    """Fetch Shodan host JSON via the REST API. The `shodan host` CLI cannot
+    emit JSON (only pretty/tsv), so we call the API directly. Returns "" on
+    any error (404 = no data, 401 = bad key, network issues)."""
+    url = f"https://api.shodan.io/shodan/host/{ip}?key={key}"
+    try:
+        with urllib.request.urlopen(url, timeout=timeout or 30) as r:
+            return r.read().decode("utf-8", "replace")
+    except (urllib.error.URLError, OSError, ValueError):
+        return ""
 
 def build_cdncheck_cmd(in_file: str, out: str) -> list[str]:
     # this cdncheck version uses -jsonl (not -json) for JSON output
@@ -37,12 +51,14 @@ def run(ws, opts) -> dict:
     with open(asn_out, "w") as fh:
         for ip in ips:
             fh.write(runner.capture("asnmap", build_asnmap_cmd(ip), timeout=opts.get("timeout")))
-    # shodan host (best-effort; needs `shodan init`)
-    if runner.tool_available("shodan") and opts.get("shodan", True):
+    # shodan host enrichment via REST API (JSON); needs SHODAN_API_KEY in env
+    key = os.environ.get("SHODAN_API_KEY", "").strip()
+    if key and opts.get("shodan", True):
         sdir = ws.raw / "shodan"; sdir.mkdir(exist_ok=True)
         for ip in ips:
-            txt = runner.capture("shodan", ["host", "--format", "json", ip],
-                                 timeout=opts.get("timeout"))
+            if ":" in ip:
+                continue  # Shodan host endpoint is IPv4-only
+            txt = shodan_host(ip, key, opts.get("timeout"))
             if txt.strip().startswith("{"):
                 (sdir / f"{ip}.json").write_text(txt)
     # uncover (best-effort; needs engine keys) — query by resolved IPs
