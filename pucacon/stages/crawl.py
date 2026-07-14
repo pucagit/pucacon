@@ -8,7 +8,8 @@ def build_katana_cmd(in_file: str, out: str, depth: str) -> list[str]:
             "-d", depth, "-o", out]
 
 def build_urlfinder_cmd(in_file: str, out: str) -> list[str]:
-    return ["-dL", in_file, "-silent", "-o", out]
+    # urlfinder takes domains via -list (string[]); -dL is not a valid flag.
+    return ["-list", in_file, "-silent", "-o", out]
 
 def _alive_urls(ws) -> list[str]:
     urls: set[str] = set()
@@ -28,9 +29,11 @@ def run(ws, opts) -> Path:
         runner.run_tool("katana",
                         build_katana_cmd(str(in_file), str(out), opts.get("depth", "3")),
                         timeout=opts.get("timeout"))
-    # urlfinder passive (always safe)
+    # urlfinder passive (always safe) — feed it domains (subs), not full URLs
+    subs = ws.raw / "subs.txt"
+    uf_in = subs if subs.exists() and subs.read_text().strip() else in_file
     if runner.tool_available("urlfinder"):
         runner.run_tool("urlfinder",
-                        build_urlfinder_cmd(str(in_file), str(ws.raw / "urls.txt")),
+                        build_urlfinder_cmd(str(uf_in), str(ws.raw / "urls.txt")),
                         timeout=opts.get("timeout"))
     return out
