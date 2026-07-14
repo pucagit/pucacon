@@ -1,0 +1,8 @@
+identifier,asset_type,instruction,eligible_for_bounty,eligible_for_submission,availability_requirement,confidentiality_requirement,integrity_requirement,max_severity,system_tags,created_at,updated_at
+app.codacy.com,URL,"",true,true,none,high,high,critical,,2019-09-26 14:31:37 UTC,2019-09-26 14:33:30 UTC
+*.codacy.com,WILDCARD,"",true,true,none,high,high,critical,,2019-09-26 14:31:37 UTC,2019-09-26 14:33:30 UTC
+https://api.codacy.com/v1/things?x=1,URL,"",true,true,none,high,high,critical,,2019-09-26 14:31:37 UTC,2019-09-26 14:33:30 UTC
+10.0.0.0/24,CIDR,"",true,true,none,high,high,critical,,2019-09-26 14:31:37 UTC,2019-09-26 14:33:30 UTC
+8.8.8.8,IP_ADDRESS,"",true,true,none,high,high,critical,,2019-09-26 14:31:37 UTC,2019-09-26 14:33:30 UTC
+codacy/codacy-cli,GITHUB_REPOSITORY,"",true,true,none,high,high,critical,,2019-09-26 14:31:37 UTC,2019-09-26 14:33:30 UTC
+out-of-scope.codacy.com,URL,"",false,false,none,high,high,critical,,2019-09-26 14:31:37 UTC,2019-09-26 14:33:30 UTC

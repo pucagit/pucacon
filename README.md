@@ -13,6 +13,21 @@ one folder per alive host with a `README.md` and per-finding `findings/*.md`.
     python3 -m pucacon targets.txt --passive                 # no naabu/katana/nuclei
     python3 -m pucacon targets.txt --brute --permute         # deep subdomain enum
 
+## Import scope from HackerOne
+Turn a HackerOne "Export scopes" CSV into a targets file (in-scope assets only):
+
+    python3 -m pucacon.scope_import scopes_program.csv -o targets.txt   # write file
+    python3 -m pucacon.scope_import scopes_program.csv                  # print to stdout
+    python3 -m pucacon.scope_import scopes_program.csv --all            # include ineligible
+
+Or feed the CSV straight into a run:
+
+    python3 -m pucacon --from-hackerone scopes_program.csv -o engagement-1
+
+Only network-recon asset types (URL / WILDCARD / DOMAIN / CIDR / IP_ADDRESS) become
+targets; URLs are reduced to hostnames. Source-code, mobile-app, and other asset
+types are reported as skipped.
+
 ## Output
     engagement-1/                       # a scope workspace (reuse across runs)
       latest -> runs/<id>               # newest run
