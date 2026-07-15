@@ -43,6 +43,14 @@ Pucacon actively scans **every host it discovers** (passive enum can surface
 third-party assets). There is no built-in scope guard — only run it against
 targets you are authorized to test. Findings are still recorded for everything found.
 
+## WAF / rate-limit guard
+After the http-probe stage, pucacon checks whether it's being blocked or throttled
+(a batch of candidates that all fail to respond = WAF drop; a flood of 429/503 =
+rate limiting). If so it **stops before the aggressive crawl/nuclei stages**, writes
+`runs/<id>/STOPPED.md` + `stop_reason.json` explaining why, and exits with code **3**
+so you can cool down and rerun — or rerun through different proxies. Disable with
+`--no-guard`. Exit codes: `0` ok · `2` bad input · `3` stopped (WAF/rate-limit).
+
 ## Pipeline
 subfinder/chaos/shuffledns/alterx → dnsx → naabu → httpx → asnmap/cdncheck/shodan/uncover
 → tlsx → katana/urlfinder → nuclei → aggregate → report

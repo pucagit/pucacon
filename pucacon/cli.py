@@ -15,6 +15,7 @@ def effective_timeout(ns_timeout):
 from .pipeline import run_pipeline
 from .report import write_report
 from .runner import log
+from . import guard
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="pucacon", description="Ultimate PD-pool recon tool")
@@ -31,6 +32,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--timeout", type=int, default=None, help="per-tool timeout seconds")
     p.add_argument("--env", default=None,
                    help="path to a .env of API keys (default: ./.env then setup/.env)")
+    p.add_argument("--no-guard", action="store_true",
+                   help="do not auto-stop on detected WAF block / rate limiting")
     return p
 
 def main(argv=None) -> int:
@@ -53,8 +56,15 @@ def main(argv=None) -> int:
     ws = Workspace(Path(ns.output), run_id=run_id).ensure()
     opts = {"passive": ns.passive, "brute": ns.brute, "permute": ns.permute,
             "shodan": not ns.no_shodan, "uncover": not ns.no_shodan,
-            "depth": ns.depth, "timeout": effective_timeout(ns.timeout)}
-    hosts = run_pipeline(scope, ws, opts)
+            "depth": ns.depth, "timeout": effective_timeout(ns.timeout),
+            "guard": not ns.no_guard}
+    hosts, stop = run_pipeline(scope, ws, opts)
     write_report(ws, hosts)
+    if stop:
+        guard.write_stop_report(ws, stop)
+        log(f"[STOPPED] {stop.title} — {stop.detail}")
+        log(f"[STOPPED] {stop.recommendation}")
+        log(f"[STOPPED] details: {ws.run}/STOPPED.md  (rerun after cooldown, or with proxies)")
+        return 3
     log(f"[done] {len(hosts)} alive host(s) -> {ws.hosts}/  |  summary: {ws.run}/summary.md")
     return 0
