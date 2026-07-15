@@ -1,13 +1,14 @@
 import json
 from pucacon.runner import tool_available, capture, run_tool, iter_jsonl, _env_for
 
-def test_env_strips_pdcp_for_probing_tools(monkeypatch):
+def test_env_always_strips_pdcp(monkeypatch):
+    # PDCP_API_KEY hangs PD tools' cloud-sync; no tool gets it in env.
     monkeypatch.setenv("PDCP_API_KEY", "secret")
-    assert "PDCP_API_KEY" not in _env_for("httpx")   # probing tool: stripped
-    assert "PDCP_API_KEY" not in _env_for("naabu")
-    assert _env_for("chaos").get("PDCP_API_KEY") == "secret"     # kept
-    assert _env_for("subfinder").get("PDCP_API_KEY") == "secret"
-    assert _env_for("uncover").get("PDCP_API_KEY") == "secret"
+    for tool in ("httpx", "naabu", "subfinder", "chaos", "uncover", "nuclei"):
+        assert "PDCP_API_KEY" not in _env_for(tool), tool
+    # non-PDCP keys are preserved
+    monkeypatch.setenv("SHODAN_API_KEY", "shodankey")
+    assert _env_for("uncover").get("SHODAN_API_KEY") == "shodankey"
 
 def test_tool_available_true_for_python():
     # "sh" is always present; monkeypatch-free check via a real binary

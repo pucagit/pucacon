@@ -54,6 +54,7 @@ DEFAULTS = {
     "naabu_rate": "1000",
     "httpx_threads": "50",
     "nuclei_rate": "150",
+    "tool_timeout": "900",   # default per-tool cap so nothing hangs the pipeline
 }
 
 _PDTM_BIN = Path.home() / ".pdtm" / "go" / "bin"

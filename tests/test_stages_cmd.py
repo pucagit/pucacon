@@ -26,7 +26,8 @@ def test_httpx_cmd_has_full_fingerprint_flags():
     cmd = http.build_httpx_cmd("in.txt", "http.jsonl")
     for flag in ("-l", "-json", "-silent", "-status-code", "-title",
                  "-tech-detect", "-web-server", "-ip", "-cname",
-                 "-cdn", "-follow-redirects", "-o"):
+                 "-cdn", "-follow-redirects", "-o",
+                 "-rate-limit", "-retries", "-random-agent"):  # WAF-safe
         assert flag in cmd, flag
 
 # --- ports ---

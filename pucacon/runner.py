@@ -8,11 +8,12 @@ from pathlib import Path
 from typing import Iterator, Sequence
 from .config import resolve
 
-# Only these tools consume PDCP_API_KEY for real data (chaos dataset, uncover
-# pdcp engine, subfinder chaos source). For every other tool, setting
-# PDCP_API_KEY triggers a cloud-sync network call to ProjectDiscovery that can
-# hang indefinitely (observed with httpx), so we strip it from their env.
-_PDCP_TOOLS = {"chaos", "subfinder", "uncover"}
+# NO tool gets PDCP_API_KEY in its env: when it is set, PD tools make a cloud
+# finalize/sync call to ProjectDiscovery that can hang for minutes (observed
+# hanging both httpx AND subfinder for the full per-tool timeout). Tools that
+# need PDCP data get it via file config instead — subfinder reads the chaos/
+# pdcp keys from its provider-config.yaml, not the environment.
+_PDCP_TOOLS: set[str] = set()
 
 def _env_for(name: str) -> dict:
     env = os.environ.copy()

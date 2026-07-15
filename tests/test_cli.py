@@ -1,4 +1,8 @@
-from pucacon.cli import build_parser
+from pucacon.cli import build_parser, effective_timeout
+
+def test_effective_timeout_defaults_when_unset():
+    assert effective_timeout(None) == 900     # backstop applied
+    assert effective_timeout(120) == 120      # explicit wins
 
 def test_parser_defaults():
     p = build_parser()

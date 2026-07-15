@@ -4,9 +4,14 @@ import argparse
 import sys
 from datetime import datetime
 from pathlib import Path
-from .config import Workspace, load_env
+from .config import Workspace, load_env, DEFAULTS
 from .targets import parse_targets
 from .scope_import import parse_hackerone_csv
+
+def effective_timeout(ns_timeout):
+    """Per-tool timeout: explicit --timeout, else the default backstop so no
+    tool can hang the pipeline (subfinder/httpx PDCP/WAF stalls)."""
+    return ns_timeout if ns_timeout else int(DEFAULTS["tool_timeout"])
 from .pipeline import run_pipeline
 from .report import write_report
 from .runner import log
@@ -48,7 +53,7 @@ def main(argv=None) -> int:
     ws = Workspace(Path(ns.output), run_id=run_id).ensure()
     opts = {"passive": ns.passive, "brute": ns.brute, "permute": ns.permute,
             "shodan": not ns.no_shodan, "uncover": not ns.no_shodan,
-            "depth": ns.depth, "timeout": ns.timeout}
+            "depth": ns.depth, "timeout": effective_timeout(ns.timeout)}
     hosts = run_pipeline(scope, ws, opts)
     write_report(ws, hosts)
     log(f"[done] {len(hosts)} alive host(s) -> {ws.hosts}/  |  summary: {ws.run}/summary.md")

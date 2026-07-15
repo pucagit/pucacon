@@ -5,11 +5,15 @@ from .. import runner
 from ..config import DEFAULTS
 
 def build_httpx_cmd(in_file: str, out: str) -> list[str]:
+    # WAF-safe defaults: 50 threads / no rate-limit trips Cloudflare bot
+    # protection and every connection gets dropped (whole scope -> empty).
+    # Lower concurrency + rate cap + retries + random UA survive the WAF.
     return [
         "-l", in_file, "-json", "-silent",
         "-status-code", "-title", "-tech-detect", "-web-server",
         "-ip", "-cname", "-cdn", "-follow-redirects",
-        "-threads", DEFAULTS["httpx_threads"], "-o", out,
+        "-threads", "30", "-rate-limit", "150", "-retries", "1",
+        "-timeout", "6", "-random-agent", "-o", out,
     ]
 
 def _candidates(ws) -> list[str]:
