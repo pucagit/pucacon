@@ -1,4 +1,7 @@
-"""IP intel: ASN (asnmap), CDN/WAF/cloud (cdncheck), Shodan + uncover (best-effort)."""
+"""IP intel: ASN (asnmap), Shodan + uncover (best-effort).
+
+CDN/WAF/cloud detection lives in the earlier `cdn` stage (it must run before
+naabu so we can skip shared edges); this stage reuses its cdncheck.jsonl."""
 from __future__ import annotations
 import json
 import os
@@ -21,10 +24,6 @@ def shodan_host(ip: str, key: str, timeout: int | None = None) -> str:
     except (urllib.error.URLError, OSError, ValueError):
         return ""
 
-def build_cdncheck_cmd(in_file: str, out: str) -> list[str]:
-    # this cdncheck version uses -jsonl (not -json) for JSON output
-    return ["-i", in_file, "-resp", "-jsonl", "-silent", "-o", out]
-
 def _all_ips(ws) -> list[str]:
     ips: set[str] = set()
     for name in ("resolved_ips.txt",):
@@ -43,9 +42,6 @@ def run(ws, opts) -> dict:
     ip_file = ws.scope / "intel-ips.txt"
     ip_file.write_text("\n".join(ips) + "\n")
 
-    # cdncheck (key-free)
-    runner.run_tool("cdncheck", build_cdncheck_cmd(str(ip_file), str(ws.artifact("cdncheck.jsonl"))),
-                    timeout=opts.get("timeout"))
     # asnmap per-ip -> concatenated jsonl
     asn_out = ws.artifact("asnmap.jsonl")
     with open(asn_out, "w") as fh:

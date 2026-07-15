@@ -1,4 +1,4 @@
-from pucacon.stages import subs, dns, http, ports, netintel, tls, crawl, vulns
+from pucacon.stages import subs, dns, cdn, http, ports, netintel, tls, crawl, vulns
 
 # --- subs ---
 def test_subfinder_cmd_uses_all_sources_and_jsonl():
@@ -44,8 +44,15 @@ def test_asnmap_cmd_json():
     assert "-i" in cmd and "1.2.3.4" in cmd and "-json" in cmd and "-silent" in cmd
 
 def test_cdncheck_cmd_json_resp():
-    cmd = netintel.build_cdncheck_cmd("ips.txt", "cdn.jsonl")
+    cmd = cdn.build_cdncheck_cmd("ips.txt", "cdn.jsonl")
     assert "-i" in cmd and "ips.txt" in cmd and "-resp" in cmd and "-jsonl" in cmd
+
+def test_cdn_is_edge_matches_cdn_waf_cloud():
+    assert cdn.is_edge({"cdn": True})
+    assert cdn.is_edge({"waf": True})
+    assert cdn.is_edge({"cloud": True})
+    assert not cdn.is_edge({"cdn": False})
+    assert not cdn.is_edge({})
 
 # --- tls ---
 def test_tlsx_cmd_grabs_san_and_flags():

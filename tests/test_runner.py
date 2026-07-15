@@ -26,6 +26,13 @@ def test_run_tool_missing_binary_returns_nonzero(monkeypatch):
     monkeypatch.setattr(runner, "resolve", lambda n: None)
     assert run_tool("ghost", ["x"]) != 0
 
+def test_run_tool_discards_child_stdout(monkeypatch, capfd):
+    from pucacon import runner
+    monkeypatch.setattr(runner, "resolve", lambda n: "/bin/echo")
+    rc = run_tool("echo", ["LEAKED_STDOUT"])
+    assert rc == 0
+    assert "LEAKED_STDOUT" not in capfd.readouterr().out   # went to DEVNULL
+
 def test_iter_jsonl_skips_bad_lines(tmp_path):
     p = tmp_path / "a.jsonl"
     p.write_text('{"host":"a.com"}\nGARBAGE\n{"host":"b.com"}\n')

@@ -1,7 +1,7 @@
 """Ordered execution of recon stages -> aggregated hosts."""
 from __future__ import annotations
 import json
-from .stages import subs, dns, ports, http, netintel, tls, crawl, vulns
+from .stages import subs, dns, cdn, ports, http, netintel, tls, crawl, vulns
 from .aggregate import build_hosts
 from .runner import log
 
@@ -25,6 +25,7 @@ def run_pipeline(scope, ws, opts) -> list:
 
     log("[*] stage: subdomain enumeration"); subs.run(scope, ws, opts)
     log("[*] stage: dns resolution");        dns.run(ws, opts)
+    log("[*] stage: cdn detection");          cdn.run(ws, opts)
     log("[*] stage: port scan");             ports.run(ws, opts)
     log("[*] stage: http probe");            http.run(ws, opts)
     log("[*] stage: network intel");         netintel.run(ws, opts)

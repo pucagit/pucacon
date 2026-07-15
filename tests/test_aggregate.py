@@ -6,7 +6,8 @@ from pucacon.aggregate import build_hosts
 def _ws_with_fixtures(tmp_path):
     ws = Workspace(tmp_path / "out").ensure()
     fx = Path(__file__).parent / "fixtures"
-    for f in ("http.jsonl", "dns.jsonl", "nuclei.jsonl", "tls.jsonl", "ports.jsonl", "crawl.jsonl"):
+    for f in ("http.jsonl", "dns.jsonl", "nuclei.jsonl", "tls.jsonl", "ports.jsonl",
+              "crawl.jsonl", "cdncheck.jsonl"):
         shutil.copy(fx / f, ws.raw / f)
     shutil.copytree(fx / "shodan", ws.raw / "shodan")
     return ws
@@ -25,6 +26,11 @@ def test_bare_ip_host_created(tmp_path):
     hosts = _by_name(build_hosts(_ws_with_fixtures(tmp_path)))
     assert "198.51.100.7" in hosts            # ip-only host from naabu
     assert hosts["198.51.100.7"].is_ip is True
+
+def test_cdn_edge_ip_not_made_into_bare_host(tmp_path):
+    hosts = _by_name(build_hosts(_ws_with_fixtures(tmp_path)))
+    assert "203.0.113.9" not in hosts         # WAF edge IP skipped
+    assert "198.51.100.7" in hosts            # non-edge bare IP still created
 
 def test_nuclei_findings_folded_in(tmp_path):
     h = _by_name(build_hosts(_ws_with_fixtures(tmp_path)))["api.example.com"]

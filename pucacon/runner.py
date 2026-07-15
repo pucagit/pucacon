@@ -39,7 +39,10 @@ def run_tool(name: str, args: Sequence[str], stdin: str | None = None,
         with (open(out_file, "w") if out_file else _null()) as fh:
             proc = subprocess.run(
                 cmd, input=stdin, text=True,
-                stdout=(fh if out_file else None),
+                # PD tools write results via their own -o flag, so their stdout
+                # is pure noise (e.g. katana echoes crawled JS). Discard it;
+                # stderr (progress/errors) still shows.
+                stdout=(fh if out_file else subprocess.DEVNULL),
                 timeout=timeout, check=False, env=_env_for(name),
             )
         return proc.returncode

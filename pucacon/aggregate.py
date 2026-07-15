@@ -85,13 +85,17 @@ def build_hosts(ws) -> list[Host]:
     for h in hosts.values():
         h.open_ports.sort()
 
-    # 4) cdncheck / 5) asnmap (by ip)
+    # 4) cdncheck / 5) asnmap (by ip). cdncheck marks an IP cdn / waf / cloud;
+    #    any of them is shared edge infra worth surfacing on the host.
     for row in iter_jsonl(ws.artifact("cdncheck.jsonl")):
         ip = row.get("input") or row.get("ip")
+        kind = ("cdn" if row.get("cdn") else "waf" if row.get("waf")
+                else "cloud" if row.get("cloud") else "")
+        if not kind:
+            continue
+        provider = row.get(f"{kind}_name") or row.get("cdn_name", "")
         for h in ip_index.get(ip, []):
-            if row.get("cdn"):
-                h.cdn = {"is_cdn": True, "provider": row.get("cdn_name", ""),
-                         "type": row.get("itemtype") or row.get("cdn_type", "")}
+            h.cdn = {"is_cdn": True, "provider": provider, "type": kind}
     for row in iter_jsonl(ws.artifact("asnmap.jsonl")):
         ip = row.get("input") or row.get("ip")
         for h in ip_index.get(ip, []):
@@ -153,11 +157,15 @@ def build_hosts(ws) -> list[Host]:
                 description=f"{h.name} points to {', '.join(h.cnames)} but has no A record — verify the target is claimed.",
             ))
 
-    # 10) bare-IP hosts: IPs with open ports but no hostname get their own folder
+    # 10) bare-IP hosts: IPs with open ports but no hostname get their own
+    #     folder, but skip CDN/WAF/cloud edge IPs — they're shared provider
+    #     infrastructure, not the target's host, and just add noise.
+    cdn_ips = {(r.get("input") or r.get("ip")) for r in iter_jsonl(ws.artifact("cdncheck.jsonl"))
+               if (r.get("cdn") or r.get("waf") or r.get("cloud"))}
     for row in iter_jsonl(ws.artifact("ports.jsonl")):
         ip = row.get("ip"); port = row.get("port")
-        if not ip or ip in ip_index:
-            continue  # already covered by a named host
+        if not ip or ip in ip_index or ip in cdn_ips:
+            continue  # already covered by a named host, or a CDN edge
         h = get(ip, is_ip=True)
         if isinstance(port, int) and port not in h.open_ports:
             h.open_ports.append(port)
