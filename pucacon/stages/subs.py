@@ -5,7 +5,11 @@ from .. import runner
 from ..config import DEFAULTS
 
 def build_subfinder_cmd(roots_file: str, out: str) -> list[str]:
-    return ["-dL", roots_file, "-all", "-silent", "-oJ", "-o", out]
+    # -max-time caps total enumeration (minutes) and -timeout caps a single
+    # slow source (seconds): with -all, one hanging provider would otherwise
+    # keep the process alive until the pipeline's per-tool kill.
+    return ["-dL", roots_file, "-all", "-silent", "-oJ",
+            "-timeout", "20", "-max-time", "5", "-o", out]
 
 def build_shuffledns_cmd(domain: str, wordlist: str, resolvers: str, out: str) -> list[str]:
     return ["-d", domain, "-w", wordlist, "-r", resolvers,
