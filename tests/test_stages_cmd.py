@@ -15,11 +15,12 @@ def test_shuffledns_cmd_bruteforce_mode():
 
 # --- dns ---
 def test_dnsx_cmd_resolves_records_json():
-    cmd = dns.build_dnsx_cmd("subs.txt", "dns.jsonl", "r.txt")
+    cmd = dns.build_dnsx_cmd("subs.txt", "dns.jsonl")
     assert "-l" in cmd and "subs.txt" in cmd
     assert "-a" in cmd and "-aaaa" in cmd and "-cname" in cmd
     assert "-resp" in cmd and "-json" in cmd
-    # r.txt only appended if it exists; here it does not, so just check flags above
+    assert "-retry" in cmd            # reliability
+    assert "-r" not in cmd            # no flaky brute-force resolver list here
 
 # --- http ---
 def test_httpx_cmd_has_full_fingerprint_flags():
